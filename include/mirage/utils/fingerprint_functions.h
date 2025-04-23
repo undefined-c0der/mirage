@@ -31,6 +31,12 @@ inline __device__ FPType compute_add_fingerprint(FPType a, FPType b) {
   return (x + y) % FP_PQ;
 }
 
+inline __device__ FPType compute_sub_fingerprint(FPType a, FPType b) {
+  uint32_t x = a;
+  uint32_t y = b;
+  return (x - y) % FP_PQ;
+}
+
 inline __device__ FPType compute_mul_fingerprint(FPType a, FPType b) {
   uint32_t x = a;
   uint32_t y = b;

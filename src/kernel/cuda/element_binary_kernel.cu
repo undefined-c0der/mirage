@@ -45,6 +45,8 @@ __global__ void execute_elementbinary(mirage::type::KNOperatorType type,
     DT operand_B = input2_ptr[i / factor2];
     if (type == mirage::type::KN_ADD_OP) {
       output_ptr[i] = operand_A + operand_B;
+    } else if (type == mirage::type::KN_SUB_OP) {
+      output_ptr[i] = operand_A - operand_B;
     } else if (type == mirage::type::KN_MUL_OP) {
       output_ptr[i] = operand_A * operand_B;
     } else if (type == mirage::type::KN_DIV_OP) {
@@ -140,6 +142,22 @@ __global__ void
       // printf("add: output[%d] = %d input1[%d] = %d input2[%d] = %d\n",
       //     threadIdx.x + blockIdx.x * blockDim.x, z % FP_PQ,
       //     input1_idx, x, input2_idx, y);
+    }
+  } else if (type == mirage::type::KN_SUB_OP) {
+    if (i < num_elements) {
+      int input1_stride = 1, input1_idx = 0;
+      int input2_stride = 1, input2_idx = 0;
+      for (int d = output.num_dims - 1; d >= 0; d--) {
+        input1_idx += (i % input1.dim[d]) * input1_stride;
+        input2_idx += (i % input2.dim[d]) * input2_stride;
+        input1_stride *= input1.dim[d];
+        input2_stride *= input2.dim[d];
+        i /= output.dim[d];
+      }
+      FPType x = input1_fp_ptr[input1_idx];
+      FPType y = input2_fp_ptr[input2_idx];
+      FPType z = compute_sub_fingerprint(x, y);
+      output_fp_ptr[threadIdx.x + blockIdx.x * blockDim.x] = z;
     }
   } else if (type == mirage::type::KN_MUL_OP) {
     if (i < num_elements) {

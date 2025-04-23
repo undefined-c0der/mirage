@@ -1123,6 +1123,7 @@ CustomOPTranspileResult
           break;
         }
         case type::TB_ADD_OP:
+        case type::TB_SUB_OP:
         case type::TB_MUL_OP:
         case type::TB_DIV_OP:
         case type::TB_POW_OP: {
@@ -1151,6 +1152,7 @@ CustomOPTranspileResult
           assert(iter_dim != -1);
           // Define op type
           string op_type_str = op->op_type == type::TB_ADD_OP   ? "ADD"
+                               : op->op_type == type::TB_SUB_OP ? "SUB"
                                : op->op_type == type::TB_MUL_OP ? "MUL"
                                : op->op_type == type::TB_DIV_OP ? "DIV"
                                : op->op_type == type::TB_POW_OP ? "POW"

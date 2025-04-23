@@ -321,6 +321,7 @@ void Transpiler::resolve_tensor_layout() {
         break;
       }
       case type::KN_ADD_OP:
+      case type::KN_SUB_OP:
       case type::KN_MUL_OP:
       case type::KN_DIV_OP:
       case type::KN_POW_OP: {

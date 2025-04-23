@@ -157,6 +157,23 @@ std::string Add::to_string() const {
   return "(" + lhs->to_string() + "+" + rhs->to_string() + ")";
 }
 
+Sub::Sub(std::shared_ptr<AbstractExpr> lhs, std::shared_ptr<AbstractExpr> rhs)
+    : lhs(lhs), rhs(rhs) {
+  assert(lhs);
+  assert(rhs);
+}
+
+z3::expr Sub::to_z3(z3::context &c,
+                    std::unordered_set<std::string> &all_variables) const {
+  z3::sort P = c.uninterpreted_sort("P");
+  z3::func_decl sub = c.function("sub", P, P, P);
+  return sub(lhs->to_z3(c, all_variables), rhs->to_z3(c, all_variables));
+}
+
+std::string Sub::to_string() const {
+  return "(" + lhs->to_string() + "-" + rhs->to_string() + ")";
+}
+
 Mul::Mul(std::shared_ptr<AbstractExpr> lhs, std::shared_ptr<AbstractExpr> rhs)
     : lhs(lhs), rhs(rhs) {
   assert(lhs);

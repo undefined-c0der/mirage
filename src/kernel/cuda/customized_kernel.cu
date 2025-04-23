@@ -201,6 +201,7 @@ __global__ void customized_kernel_function(
         __syncthreads();
       } else if (op_type == mirage::type::TB_DIV_OP ||
                  op_type == mirage::type::TB_ADD_OP ||
+                 op_type == mirage::type::TB_SUB_OP ||
                  op_type == mirage::type::TB_MUL_OP ||
                  op_type == mirage::type::TB_POW_OP) {
         int3 input1_shape, input2_shape;
@@ -649,6 +650,7 @@ __global__ void compute_customizedop_fingerprint(
           break;
         }
         case mirage::type::TB_ADD_OP:
+        case mirage::type::TB_SUB_OP:
         case mirage::type::TB_MUL_OP:
         case mirage::type::TB_DIV_OP:
         case mirage::type::TB_POW_OP: {

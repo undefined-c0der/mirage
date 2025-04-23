@@ -530,6 +530,7 @@ Transpiler::Transpiler(kernel::Graph const *_graph,
         break;
       }
       case KN_ADD_OP:
+      case KN_SUB_OP:
       case KN_MUL_OP:
       case KN_DIV_OP:
       case KN_POW_OP: {

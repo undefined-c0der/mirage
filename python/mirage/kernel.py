@@ -157,7 +157,7 @@ def get_cc_cmd(
     else:
         specific_cmd = [
             "-arch=native",
-        ]+ (["-DMIRAGE_ENABLE_PROFILER"] if profiling else [])
+        ] + (["-DMIRAGE_ENABLE_PROFILER"] if profiling else [])
 
     return common_cmd[:6] + specific_cmd + common_cmd[6:]
 
@@ -257,6 +257,9 @@ class KNGraph:
 
     def add(self, A: DTensor, B: DTensor):
         return self.cygraph.add(A, B)
+
+    def sub(self, A: DTensor, B: DTensor):
+        return self.cygraph.sub(A, B)
 
     def mul(self, A: DTensor, B: DTensor):
         return self.cygraph.mul(A, B)
@@ -371,11 +374,16 @@ class KNGraph:
 
         if results["profiler_buf_size"] > 0:
             from .profiler import export_to_perfetto_trace
+
             profiler_result_dir = "./profiling_results"
-            profiler_result_file = os.path.join(profiler_result_dir, 'mirage.perfetto-trace')
+            profiler_result_file = os.path.join(
+                profiler_result_dir, "mirage.perfetto-trace"
+            )
             os.makedirs(profiler_result_dir, exist_ok=True)
             export_to_perfetto_trace(prodiler_buffer_tensor, profiler_result_file)
-            print(f"Exported profiling results to {profiler_result_file}, please view it with perfetto: https://ui.perfetto.dev/")
+            print(
+                f"Exported profiling results to {profiler_result_file}, please view it with perfetto: https://ui.perfetto.dev/"
+            )
         return output_tensors
 
     def compile(self, async_=False, **kwargs):
@@ -748,9 +756,9 @@ class KNGraph:
         operators = self.cygraph.get_graph_structure()
         self.visualizer = visualizer(file_name)
         self.visualizer.draw_graphs(operators)
-    
+
     def to_json(self, filename):
         cy_to_json(self.cygraph, filename)
-    
+
     def from_json(self, filename):
         self.cygraph = cy_from_json(filename)

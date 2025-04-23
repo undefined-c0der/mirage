@@ -133,6 +133,8 @@ def get_kn_operator_type_string(int op_type):
         return "kn_log_op"
     elif op_type == KN_ADD_OP:
         return "kn_add_op"
+    elif op_type == KN_SUB_OP:
+        return "kn_sub_op"
     elif op_type == KN_MUL_OP:
         return "kn_mul_op"
     elif op_type == KN_DIV_OP:
@@ -212,6 +214,8 @@ def get_tb_operator_type_string(int op_type):
         return "tb_log_op"
     elif op_type == TB_ADD_OP:
         return "tb_add_op"
+    elif op_type == TB_SUB_OP:
+        return "tb_sub_op"
     elif op_type == TB_MUL_OP:
         return "tb_mul_op"
     elif op_type == TB_DIV_OP:
@@ -715,6 +719,11 @@ cdef class CyKNGraph:
         t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
         return DTensor(t)
 
+    def sub(self, DTensor A, DTensor B):
+        cdef CppDTensor* ptr = self.p_kgraph.sub(A.c_ptr, B.c_ptr)
+        t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
+        return DTensor(t)
+
     def mul(self, DTensor A, DTensor B):
         cdef CppDTensor* ptr = self.p_kgraph.mul(A.c_ptr, B.c_ptr)
         t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
@@ -942,6 +951,11 @@ cdef class CyTBGraph:
 
     def add(self, STensor A, STensor B):
         cdef CppSTensor* ptr = self.p_bgraph.add(A.c_ptr, B.c_ptr)
+        t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
+        return STensor(t)
+
+    def sub(self, STensor A, STensor B):
+        cdef CppSTensor* ptr = self.p_bgraph.sub(A.c_ptr, B.c_ptr)
         t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
         return STensor(t)
 

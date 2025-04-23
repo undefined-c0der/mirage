@@ -69,6 +69,10 @@ public:
       for (int i = 0; i < output_num_elements; i += num_threads) {
         output_ptr[i] = powf(input1_ptr[i / factor1], input2_ptr[i / factor2]);
       }
+    } else if (op_type == mirage::type::TB_SUB_OP) {
+      for (int i = 0; i < output_num_elements; i += num_threads) {
+        output_ptr[i] = input1_ptr[i / factor1] - input2_ptr[i / factor2];
+      }
     } else {
       assert(false && "Unsupported operator");
     }
@@ -124,6 +128,8 @@ public:
         output_ptr[i] = compute_mul_fingerprint(x, y);
       } else if (type == mirage::type::TB_POW_OP) {
         output_ptr[i] = compute_pow_fingerprint(x, y);
+      } else if (type == mirage::type::TB_SUB_OP) {
+        output_ptr[i] = compute_sub_fingerprint(x, y);
       } else {
         assert(false && "Unimplemented op");
       }

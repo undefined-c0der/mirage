@@ -302,6 +302,7 @@ TranspileResult Transpiler::transpile_ugraph() {
         break;
       }
       case type::KNOperatorType::KN_ADD_OP:
+      case type::KNOperatorType::KN_SUB_OP:
       case type::KNOperatorType::KN_MUL_OP:
       case type::KNOperatorType::KN_DIV_OP:
       case type::KNOperatorType::KN_POW_OP: {
@@ -349,6 +350,7 @@ TranspileResult Transpiler::transpile_ugraph() {
         exec.e(out0_ptr_code);
         // Get OPType
         string op_type_str = op->op_type == type::KN_ADD_OP   ? "ADD"
+                             : op->op_type == type::KN_SUB_OP ? "SUB"
                              : op->op_type == type::KN_MUL_OP ? "MUL"
                              : op->op_type == type::KN_DIV_OP ? "DIV"
                              : op->op_type == type::KN_POW_OP ? "POW"

@@ -70,6 +70,7 @@ std::vector<z3::expr>
   z3::expr data_dim[3] = {data_dim0, data_dim1, data_dim2};
 
   z3::func_decl ew_add = ctx.function("ew_add", T, T, T);
+  z3::func_decl ew_sub = ctx.function("ew_sub", T, T, T);
   z3::func_decl ew_mul = ctx.function("ew_mul", T, T, T);
   z3::func_decl bc_div = ctx.function("bc_div", T, T, T);
   z3::func_decl bc_pow = ctx.function("bc_pow", T, T, T);
@@ -195,6 +196,12 @@ std::vector<z3::expr>
           z3::expr lhs = tensor_exprs.at(op->input_tensors[0].guid);
           z3::expr rhs = tensor_exprs.at(op->input_tensors[1].guid);
           tensor_exprs.emplace(op->output_tensors[0].guid, ew_add(lhs, rhs));
+          break;
+        }
+        case type::TBOperatorType::TB_SUB_OP: {
+          z3::expr lhs = tensor_exprs.at(op->input_tensors[0].guid);
+          z3::expr rhs = tensor_exprs.at(op->input_tensors[1].guid);
+          tensor_exprs.emplace(op->output_tensors[0].guid, ew_sub(lhs, rhs));
           break;
         }
         case type::TBOperatorType::TB_CONCAT_0_OP:
@@ -359,6 +366,12 @@ std::vector<z3::expr>
           tensor_exprs.emplace(op->output_tensors[0].guid, ew_add(lhs, rhs));
           break;
         }
+        case type::KNOperatorType::KN_SUB_OP: {
+          z3::expr lhs = tensor_exprs.at(op->input_tensors[0].guid);
+          z3::expr rhs = tensor_exprs.at(op->input_tensors[1].guid);
+          tensor_exprs.emplace(op->output_tensors[0].guid, ew_sub(lhs, rhs));
+          break;
+        }
         case type::KNOperatorType::KN_DIV_OP: {
           z3::expr lhs = tensor_exprs.at(op->input_tensors[0].guid);
           z3::expr rhs = tensor_exprs.at(op->input_tensors[1].guid);
@@ -498,6 +511,7 @@ bool is_equivalent(z3::expr const &lhs,
   z3::expr data_dim[3] = {data_dim0, data_dim1, data_dim2};
 
   z3::func_decl ew_add = ctx.function("ew_add", T, T, T);
+  z3::func_decl ew_sub = ctx.function("ew_sub", T, T, T);
   z3::func_decl ew_mul = ctx.function("ew_mul", T, T, T);
   z3::func_decl bc_div = ctx.function("bc_div", T, T, T);
   z3::func_decl bc_pow = ctx.function("bc_pow", T, T, T);
@@ -706,7 +720,7 @@ bool is_equivalent(z3::expr const &lhs,
 
   {
     // element-wise binary & bc_div
-    std::vector<z3::func_decl> ops = {ew_add, ew_mul, bc_div, bc_pow};
+    std::vector<z3::func_decl> ops = {ew_add, ew_sub, ew_mul, bc_div, bc_pow};
     for (z3::func_decl op : ops) {
       for (z3::expr part_dim : {data_dim2, data_dim1}) {
         z3::expr partitioned_lhs = partition(t0, part_dim, d0, i0);

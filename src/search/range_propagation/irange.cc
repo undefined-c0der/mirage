@@ -304,6 +304,7 @@ IKNRange forward_propagate(IKNRange const &range,
       break;
     }
     case type::KNOperatorType::KN_ADD_OP:
+    case type::KNOperatorType::KN_SUB_OP:
     case type::KNOperatorType::KN_MUL_OP: {
       ret = range;
       break;
@@ -376,6 +377,7 @@ IKNRange backward_propagate(IKNRange const &knrange,
       break;
     }
     case type::KNOperatorType::KN_ADD_OP:
+    case type::KNOperatorType::KN_SUB_OP:
     case type::KNOperatorType::KN_MUL_OP: {
       ret = knrange;
       break;
@@ -609,6 +611,7 @@ ITBRange forward_propagate(ITBRange const &tbrange,
       break;
     }
     case type::TBOperatorType::TB_ADD_OP:
+    case type::TBOperatorType::TB_SUB_OP:
     case type::TBOperatorType::TB_MUL_OP: {
       ret = tbrange;
       break;
@@ -710,6 +713,7 @@ ITBRange backward_propagate(ITBRange const &tbrange,
       break;
     }
     case type::TBOperatorType::TB_ADD_OP:
+    case type::TBOperatorType::TB_SUB_OP:
     case type::TBOperatorType::TB_MUL_OP: {
       ret = tbrange;
       break;

@@ -113,6 +113,7 @@ NKITranspiler::NKITranspiler(kernel::Graph const *_graph,
         break;
       }
       case KN_ADD_OP:
+      case KN_SUB_OP:
       case KN_MUL_OP:
       case KN_DIV_OP:
       case KN_POW_OP: {
@@ -195,6 +196,7 @@ NKITranspiler::NKITranspiler(kernel::Graph const *_graph,
               break;
             }
             case TB_ADD_OP:
+            case TB_SUB_OP:
             case TB_MUL_OP:
             case TB_DIV_OP:
             case TB_POW_OP: {
@@ -437,6 +439,7 @@ std::optional<NKIErrorInfo> NKITranspiler::resolve_tensor_layout() {
             break;
           }
           case type::TB_ADD_OP:
+          case type::TB_SUB_OP:
           case type::TB_MUL_OP:
           case type::TB_DIV_OP:
           case type::TB_POW_OP: {
@@ -620,6 +623,7 @@ NKITranspileResult NKITranspiler::transpile_ugraph() {
         break;
       }
       case type::KN_ADD_OP:
+      case type::KN_SUB_OP:
       case type::KN_MUL_OP:
       case type::KN_DIV_OP:
       case type::KN_POW_OP: {

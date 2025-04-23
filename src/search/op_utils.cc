@@ -11,7 +11,7 @@ bool is_binary(type::TBOperatorType op) {
       type::TBOperatorType::TB_MATMUL_OP,
       type::TBOperatorType::TB_DIV_OP,
       type::TBOperatorType::TB_POW_OP,
-      type::TBOperatorType::TB_MUL_OP};
+      type::TBOperatorType::TB_SUB_OP};
   return contains(true_values, op);
 }
 
@@ -44,7 +44,7 @@ bool is_binary(type::KNOperatorType op) {
       type::KNOperatorType::KN_MATMUL_OP,
       type::KNOperatorType::KN_DIV_OP,
       type::KNOperatorType::KN_POW_OP,
-      type::KNOperatorType::KN_MUL_OP,
+      type::KNOperatorType::KN_SUB_OP,
   };
   return contains(true_values, op);
 }
@@ -232,6 +232,8 @@ std::shared_ptr<AbstractExpr> get_pattern(type::KNOperatorType op,
                                     std::make_shared<Mul>(lhs, rhs));
     case type::KNOperatorType::KN_ADD_OP:
       return std::make_shared<Add>(lhs, rhs);
+    case type::KNOperatorType::KN_SUB_OP:
+      return std::make_shared<Sub>(lhs, rhs);
     case type::KNOperatorType::KN_DIV_OP:
       return std::make_shared<Div>(lhs, rhs);
     case type::KNOperatorType::KN_MUL_OP:
@@ -256,6 +258,8 @@ std::shared_ptr<AbstractExpr> get_pattern(type::TBOperatorType op,
                                     std::make_shared<Mul>(lhs, rhs));
     case type::TBOperatorType::TB_ADD_OP:
       return std::make_shared<Add>(lhs, rhs);
+    case type::TBOperatorType::TB_SUB_OP:
+      return std::make_shared<Sub>(lhs, rhs);
     case type::TBOperatorType::TB_DIV_OP:
       return std::make_shared<Div>(lhs, rhs);
     case type::TBOperatorType::TB_MUL_OP:
@@ -356,6 +360,7 @@ KNOperator *create_op(kernel::Graph &g,
       return g.create_matmul_op(input1, input2);
     case type::KNOperatorType::KN_DIV_OP:
     case type::KNOperatorType::KN_ADD_OP:
+    case type::KNOperatorType::KN_SUB_OP:
     case type::KNOperatorType::KN_MUL_OP:
     case type::KNOperatorType::KN_POW_OP:
       return g.create_elementbinary_op(input1, input2, type);
@@ -439,6 +444,7 @@ TBOperator *create_op(threadblock::Graph &g,
       return g.create_matmul_op(input1, input2);
     case type::TBOperatorType::TB_DIV_OP:
     case type::TBOperatorType::TB_ADD_OP:
+    case type::TBOperatorType::TB_SUB_OP:
     case type::TBOperatorType::TB_MUL_OP:
     case type::TBOperatorType::TB_POW_OP:
       return g.create_elementbinary_op(input1, input2, type);

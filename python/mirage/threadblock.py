@@ -1,5 +1,6 @@
 from .core import *
 
+
 class TBGraph:
     def __init__(self, graph):
         self.cygraph = graph
@@ -21,10 +22,10 @@ class TBGraph:
 
     def gelu(self, A: STensor):
         return self.cygraph.gelu(A)
-    
+
     def relu(self, A: STensor):
         return self.cygraph.relu(A)
-    
+
     def clamp(self, A: STensor, min_val: float, max_val: float):
         return self.cygraph.clamp(A, min_val, max_val)
 
@@ -36,6 +37,9 @@ class TBGraph:
 
     def add(self, A: STensor, B: STensor):
         return self.cygraph.add(A, B)
+
+    def sub(self, A: STensor, B: STensor):
+        return self.cygraph.sub(A, B)
 
     def mul(self, A: STensor, B: STensor):
         return self.cygraph.mul(A, B)

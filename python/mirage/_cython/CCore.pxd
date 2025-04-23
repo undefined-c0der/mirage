@@ -68,6 +68,7 @@ cdef extern from "mirage/type.h" namespace "mirage::type":
         KN_MUL_OP = 1201,
         KN_DIV_OP = 1202,
         KN_POW_OP = 1203,
+        KN_SUB_OP = 1204,
         # Reduction & Normalization
         KN_REDUCTION_0_OP = 1300,
         KN_REDUCTION_1_OP = 1301,
@@ -200,6 +201,7 @@ cdef extern from "mirage/kernel/graph.h" namespace "mirage::kernel":
         CppDTensor* sqrt(const CppDTensor* input)
         CppDTensor* square(const CppDTensor* input)
         CppDTensor* add(const CppDTensor* op1, const CppDTensor* op2)
+        CppDTensor* sub(const CppDTensor* op1, const CppDTensor* op2)
         CppDTensor* mul(const CppDTensor* op1, const CppDTensor* op2)
         CppDTensor* div(const CppDTensor* op1, const CppDTensor* op2)
         CppDTensor* pow(const CppDTensor* op1, const CppDTensor* op2)
@@ -265,6 +267,8 @@ cdef extern from "mirage/threadblock/graph.h" namespace "mirage::threadblock":
         CppSTensor* square(const CppSTensor *A)
         CppSTensor* sqrt(const CppSTensor *A)
         CppSTensor* add(const CppSTensor *A,
+                     const CppSTensor *B)
+        CppSTensor* sub(const CppSTensor *A,
                      const CppSTensor *B)
         CppSTensor* mul(const CppSTensor *A,
                      const CppSTensor *B)
