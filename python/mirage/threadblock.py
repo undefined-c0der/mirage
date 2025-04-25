@@ -50,6 +50,9 @@ class TBGraph:
     def reduction(self, A: STensor, dim: int):
         return self.cygraph.reduction(A, dim)
 
+    def reduction_max(self, A: STensor, dim: int):
+        return self.cygraph.reduction_max(A, dim)
+
     def rms_norm(self, A: STensor):
         return self.cygraph.rms_norm(A)
 
@@ -58,3 +61,6 @@ class TBGraph:
 
     def forloop_accum(self, A: STensor, acc: str = None):
         return self.cygraph.forloop_accum(A, acc)
+
+    def forloop_accum_rescale(self, A: STensor, B: STensor, acc: str = None):
+        return self.cygraph.forloop_accum_rescale(A, B, acc)

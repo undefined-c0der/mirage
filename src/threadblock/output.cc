@@ -16,6 +16,8 @@
 #include "mirage/threadblock/graph.h"
 #include "mirage/threadblock/operator.h"
 
+#include <iostream>
+
 namespace mirage {
 namespace threadblock {
 
@@ -50,6 +52,8 @@ TBOperator *Graph::create_output_op(STensor const &stensor,
   // TODO(jiazhihao): this check requires an accum operator before output saver
   // we should remove the check when generating distributed kernels
   if (!stensor.after_accum) {
+    std::cout << "Error: STensor " << stensor.guid << " is not after accum"
+              << std::endl;
     return nullptr;
   }
   TBOutputOp *op =
