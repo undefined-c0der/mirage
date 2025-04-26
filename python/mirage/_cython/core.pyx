@@ -733,6 +733,11 @@ cdef class CyKNGraph:
         t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
         return DTensor(t)
 
+    def mul_scalar(self, DTensor input, float scalar):
+        cdef CppDTensor* ptr = self.p_kgraph.mul_scalar(input.c_ptr, scalar)
+        t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
+        return DTensor(t)
+
     def add(self, DTensor A, DTensor B):
         cdef CppDTensor* ptr = self.p_kgraph.add(A.c_ptr, B.c_ptr)
         t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
@@ -965,6 +970,11 @@ cdef class CyTBGraph:
 
     def sqrt(self, STensor A):
         cdef CppSTensor* ptr = self.p_bgraph.sqrt(A.c_ptr)
+        t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
+        return STensor(t)
+
+    def mul_scalar(self, STensor A, float scalar):
+        cdef CppSTensor* ptr = self.p_bgraph.mul_scalar(A.c_ptr, scalar)
         t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
         return STensor(t)
 

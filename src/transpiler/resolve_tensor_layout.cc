@@ -307,7 +307,8 @@ void Transpiler::resolve_tensor_layout() {
       case type::KN_SILU_OP:
       case type::KN_GELU_OP:
       case type::KN_RELU_OP:
-      case type::KN_CLAMP_OP: {
+      case type::KN_CLAMP_OP:
+      case type::KN_MUL_SCALAR_OP: {
         // Elementwise Unary OP
         kn::DTensor const &input = op->input_tensors.at(0);
         kn::DTensor const &output = op->output_tensors.at(0);

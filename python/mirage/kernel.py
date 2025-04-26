@@ -255,6 +255,9 @@ class KNGraph:
     def square(self, A: DTensor):
         return self.cygraph.square(A)
 
+    def mul_scalar(self, A: DTensor, scalar: float):
+        return self.cygraph.mul_scalar(A, scalar)
+
     def add(self, A: DTensor, B: DTensor):
         return self.cygraph.add(A, B)
 

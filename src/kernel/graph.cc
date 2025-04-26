@@ -256,6 +256,18 @@ void from_json(json const &j, Graph &g) {
         guid_mapping[output.guid] = guidO;
         break;
       }
+      // Not supported yet
+      // case type::KNOperatorType::KN_MUL_SCALAR_OP: {
+      //   size_t guid, guidO;
+      //   jop.at("input_tensors")[0].at("guid").get_to(guid);
+      //   jop.at("output_tensors")[0].at("guid").get_to(guidO);
+      //   float scalar;
+      //   jop.at("scalar").get_to(scalar);
+      //   DTensor const &output =
+      //       g.elementunary_mul_scalar(get_tensor_from_guid(guid), scalar);
+      //   guid_mapping[output.guid] = guidO;
+      //   break;
+      // }
       case type::KNOperatorType::KN_DIV_OP:
       case type::KNOperatorType::KN_ADD_OP:
       case type::KNOperatorType::KN_SUB_OP:

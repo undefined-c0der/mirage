@@ -120,9 +120,17 @@ KNOperator *Graph::create_elementunary_clamp_op(DTensor const &input,
   return op;
 }
 
+DTensor Graph::mul_scalar(DTensor const &input, float const &scalar) {
+  return elementunary(input, mirage::type::KN_MUL_SCALAR_OP, scalar);
+}
+DTensor *Graph::mul_scalar(DTensor const *input, float const &scalar) {
+  return elementunary(input, mirage::type::KN_MUL_SCALAR_OP, scalar);
+}
+
 DTensor Graph::elementunary(DTensor const &input,
-                            mirage::type::KNOperatorType type) {
-  KNOperator *op = create_elementunary_op(input, type);
+                            mirage::type::KNOperatorType type,
+                            float const &scalar) {
+  KNOperator *op = create_elementunary_op(input, type, scalar);
   assert(op != nullptr);
   operators.push_back(op);
   assert(op->output_tensors.size() == 1);
@@ -131,8 +139,9 @@ DTensor Graph::elementunary(DTensor const &input,
 }
 
 DTensor *Graph::elementunary(DTensor const *input,
-                             mirage::type::KNOperatorType type) {
-  KNOperator *op = create_elementunary_op(*input, type);
+                             mirage::type::KNOperatorType type,
+                             float const &scalar) {
+  KNOperator *op = create_elementunary_op(*input, type, scalar);
   assert(op != nullptr);
   operators.push_back(op);
   assert(op->output_tensors.size() == 1);
@@ -140,12 +149,13 @@ DTensor *Graph::elementunary(DTensor const *input,
 }
 
 KNOperator *Graph::create_elementunary_op(DTensor const &input,
-                                          mirage::type::KNOperatorType type) {
+                                          mirage::type::KNOperatorType type,
+                                          float const &scalar) {
   if (!can_allocate(input)) {
     return nullptr;
   }
 
-  KNElementUnaryOp *op = new KNElementUnaryOp(this, input, type);
+  KNElementUnaryOp *op = new KNElementUnaryOp(this, input, type, scalar);
 
   return op;
 }
@@ -154,13 +164,14 @@ KNClampUnaryOp::KNClampUnaryOp(Graph *_kgraph,
                                DTensor const &input,
                                float min_val,
                                float max_val)
-    : KNElementUnaryOp(_kgraph, input, mirage::type::KN_CLAMP_OP),
+    : KNElementUnaryOp(_kgraph, input, mirage::type::KN_CLAMP_OP, 0.0f),
       min_val(min_val), max_val(max_val) {}
 
 KNElementUnaryOp::KNElementUnaryOp(Graph *_kgraph,
                                    DTensor const &input,
-                                   mirage::type::KNOperatorType type)
-    : mirage::kernel::KNOperator(_kgraph, type, input) {
+                                   mirage::type::KNOperatorType type,
+                                   float const &scalar)
+    : mirage::kernel::KNOperator(_kgraph, type, input), scalar(scalar) {
   DTensor output = input;
   output.owner_op = this;
   output.owner_ts_idx = 0;

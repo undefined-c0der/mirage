@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <unordered_set>
 
+#include "mirage/kernel/element_unary.h"
+#include "mirage/kernel/graph.h"
 #include "mirage/transpiler/utils.h"
 #include "mirage/type.h"
 
@@ -141,6 +143,8 @@ static string get_kn_op_str(type::KNOperatorType type) {
         return "RELU";
       case type::KN_CLAMP_OP:
         return "CLAMP";
+      case type::KN_MUL_SCALAR_OP:
+        return "MULSCALAR";
       default:
         assert(0);
     }
@@ -257,7 +261,10 @@ TranspileResult Transpiler::transpile_ugraph() {
       case type::KNOperatorType::KN_RELU_OP:
       case type::KNOperatorType::KN_CLAMP_OP:
       case type::KNOperatorType::KN_SQUARE_OP:
-      case type::KNOperatorType::KN_SQRT_OP: {
+      case type::KNOperatorType::KN_SQRT_OP:
+      case type::KNOperatorType::KN_MUL_SCALAR_OP: {
+        kn::KNElementUnaryOp const *cur_op =
+            static_cast<kn::KNElementUnaryOp const *>(op);
         // Elemwise unary op
         kn::DTensor &in0 = op->input_tensors.at(0);
         kn::DTensor &out0 = op->output_tensors.at(0);
@@ -298,7 +305,10 @@ TranspileResult Transpiler::transpile_ugraph() {
                in0_layout,
                out0_layout);
         // Launch kernel
-        exec.e("kernel::run($, $);", out0_ptr_name, in0_ptr_name);
+        exec.e("kernel::run($, $, $);",
+               out0_ptr_name,
+               in0_ptr_name,
+               cur_op->scalar);
         break;
       }
       case type::KNOperatorType::KN_ADD_OP:

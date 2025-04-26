@@ -14,7 +14,9 @@
  */
 
 #include "mirage/transpiler/transpile.h"
+#include "mirage/kernel/element_unary.h"
 #include "mirage/kernel/graph.h"
+#include "mirage/threadblock/element_unary.h"
 #include "mirage/threadblock/graph.h"
 #include "mirage/transpiler/transpiler.h"
 #include <cassert>
@@ -155,6 +157,16 @@ kernel::Graph const *rewrite_graph_for_online_softmax(kernel::Graph const *g) {
           assert(op->output_tensors.size() == 1);
           kernel::DTensor dt =
               new_g->elementunary(dtensor_inputs[0], op->op_type);
+          dtensor_mapping[op->output_tensors[0].guid] = dt;
+          break;
+        }
+        case KN_MUL_SCALAR_OP: {
+          assert(dtensor_inputs.size() == 1);
+          assert(op->output_tensors.size() == 1);
+          kernel::KNElementUnaryOp *mul_scalar_op =
+              static_cast<kernel::KNElementUnaryOp *>(op);
+          kernel::DTensor dt = new_g->elementunary(
+              dtensor_inputs[0], op->op_type, mul_scalar_op->scalar);
           dtensor_mapping[op->output_tensors[0].guid] = dt;
           break;
         }
@@ -311,12 +323,21 @@ kernel::Graph const *rewrite_graph_for_online_softmax(kernel::Graph const *g) {
               case TB_SILU_OP:
               case TB_GELU_OP:
               case TB_RELU_OP:
-              case TB_CLAMP_OP:
-              case TB_MUL_SCALAR_OP: {
+              case TB_CLAMP_OP: {
                 assert(stensor_inputs.size() == 1);
                 threadblock::STensor st =
                     tbg->elementunary(stensor_inputs[0], bop->op_type);
                 assert(bop->output_tensors.size() == 1);
+                stensor_mapping[bop->output_tensors[0].guid] = st;
+                break;
+              }
+              case TB_MUL_SCALAR_OP: {
+                assert(stensor_inputs.size() == 1);
+                assert(bop->output_tensors.size() == 1);
+                threadblock::TBElementUnaryOp *mul_scalar_op =
+                    static_cast<threadblock::TBElementUnaryOp *>(bop);
+                threadblock::STensor st = tbg->elementunary(
+                    stensor_inputs[0], bop->op_type, mul_scalar_op->scalar);
                 stensor_mapping[bop->output_tensors[0].guid] = st;
                 break;
               }
@@ -522,6 +543,16 @@ Transpiler::Transpiler(kernel::Graph const *_graph,
         dtensor_mapping[op->output_tensors[0].guid] = dt;
         break;
       }
+      case KN_MUL_SCALAR_OP: {
+        assert(dtensor_inputs.size() == 1);
+        assert(op->output_tensors.size() == 1);
+        kernel::KNElementUnaryOp *mul_scalar_op =
+            static_cast<kernel::KNElementUnaryOp *>(op);
+        kernel::DTensor dt = g->elementunary(
+            dtensor_inputs[0], op->op_type, mul_scalar_op->scalar);
+        dtensor_mapping[op->output_tensors[0].guid] = dt;
+        break;
+      }
       case KN_ADD_OP:
       case KN_SUB_OP:
       case KN_MUL_OP:
@@ -598,12 +629,21 @@ Transpiler::Transpiler(kernel::Graph const *_graph,
             case TB_SILU_OP:
             case TB_GELU_OP:
             case TB_RELU_OP:
-            case TB_CLAMP_OP:
-            case TB_MUL_SCALAR_OP: {
+            case TB_CLAMP_OP: {
               assert(stensor_inputs.size() == 1);
               threadblock::STensor st =
                   tbg->elementunary(stensor_inputs[0], bop->op_type);
               assert(bop->output_tensors.size() == 1);
+              stensor_mapping[bop->output_tensors[0].guid] = st;
+              break;
+            }
+            case TB_MUL_SCALAR_OP: {
+              assert(stensor_inputs.size() == 1);
+              assert(bop->output_tensors.size() == 1);
+              threadblock::TBElementUnaryOp *mul_scalar_op =
+                  static_cast<threadblock::TBElementUnaryOp *>(bop);
+              threadblock::STensor st = tbg->elementunary(
+                  stensor_inputs[0], bop->op_type, mul_scalar_op->scalar);
               stensor_mapping[bop->output_tensors[0].guid] = st;
               break;
             }

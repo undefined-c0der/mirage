@@ -24,12 +24,16 @@ class KNElementUnaryOp : public mirage::kernel::KNOperator {
 public:
   KNElementUnaryOp(Graph *_graph,
                    DTensor const &input,
-                   mirage::type::KNOperatorType type);
+                   mirage::type::KNOperatorType type,
+                   float const &scalar = 0.0f);
   ~KNElementUnaryOp();
   bool profile(ProfileResult &profile) override;
   bool fingerprint(void) override;
 
   operator json() const override;
+
+public:
+  float const scalar;
 };
 
 class KNClampUnaryOp : public KNElementUnaryOp {

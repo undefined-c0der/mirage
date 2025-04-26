@@ -66,6 +66,8 @@ public:
   DTensor *square(DTensor const *input);
   DTensor sqrt(DTensor const &input);
   DTensor *sqrt(DTensor const *input);
+  DTensor mul_scalar(DTensor const &input, float const &scalar);
+  DTensor *mul_scalar(DTensor const *input, float const &scalar);
   DTensor silu(DTensor const &input);
   DTensor *silu(DTensor const *input);
   DTensor gelu(DTensor const &input);
@@ -77,12 +79,15 @@ public:
   DTensor *
       clamp(DTensor const *input, float const &min_val, float const &max_val);
   DTensor elementunary(DTensor const &input,
-                       mirage::type::KNOperatorType _type);
+                       mirage::type::KNOperatorType _type,
+                       float const &scalar = 0.0f);
   DTensor *elementunary(DTensor const *input,
-                        mirage::type::KNOperatorType _type);
+                        mirage::type::KNOperatorType _type,
+                        float const &scalar = 0.0f);
 
   KNOperator *create_elementunary_op(DTensor const &input,
-                                     mirage::type::KNOperatorType _type);
+                                     mirage::type::KNOperatorType _type,
+                                     float const &scalar = 0.0f);
 
   DTensor elementunary_clamp(DTensor const &input,
                              float const &min_val,

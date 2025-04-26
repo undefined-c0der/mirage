@@ -9,10 +9,20 @@
 
 namespace kn {
 
-enum class ElementUnaryOpType { EXP, SILU, GELU, RELU, CLAMP, SQUARE, SQRT };
+enum class ElementUnaryOpType {
+  EXP,
+  SILU,
+  GELU,
+  RELU,
+  CLAMP,
+  SQUARE,
+  SQRT,
+  MULSCALAR
+};
 
 template <typename T, ElementUnaryOpType OP>
-static __device__ __forceinline__ T perform_element_unary_op(T a) {
+static __device__ __forceinline__ T
+    perform_element_unary_op(T a, float scalar = 0.0f) {
   if constexpr (!(std::is_same_v<T, cutlass::half_t> ||
                   std::is_same_v<T, cutlass::bfloat16_t> ||
                   std::is_same_v<T, float> || std::is_same_v<T, __half>)) {
@@ -32,6 +42,8 @@ static __device__ __forceinline__ T perform_element_unary_op(T a) {
     return (T)(fmaxf(0.f, (float)a));
   } else if constexpr (OP == ElementUnaryOpType::CLAMP) {
     return (T)(fmaxf(0.f, fminf((float)a, 1.f)));
+  } else if constexpr (OP == ElementUnaryOpType::MULSCALAR) {
+    return (T)(scalar * (float)a);
   } else {
     assert(0 && "unsupport datatype in kn elementunary");
   }
@@ -47,7 +59,8 @@ static __device__ __forceinline__ T perform_element_unary_op(T a) {
 template <typename Config>
 static __global__ void
     element_unary_kernel_fwd(typename Config::T *__restrict__ out,
-                             typename Config::T const *__restrict__ in) {
+                             typename Config::T const *__restrict__ in,
+                             float scalar = 0.0f) {
   using T = typename Config::T;
   using Numel = typename Config::Numel;
   auto src_layout = (typename Config::SrcLayout){};
@@ -56,7 +69,8 @@ static __global__ void
   if (idx < Numel{}) {
     int64_t phy_pos_src = src_layout(idx);
     int64_t phy_pos_dst = dst_layout(idx);
-    out[phy_pos_dst] = perform_element_unary_op<T, Config::OP>(in[phy_pos_src]);
+    out[phy_pos_dst] =
+        perform_element_unary_op<T, Config::OP>(in[phy_pos_src], scalar);
   }
 }
 
@@ -78,9 +92,9 @@ public:
   static constexpr dim3 block_shape = {BLOCK_SIZE, 1, 1};
   static constexpr dim3 grid_shape = {ceil_div(Numel::value, BLOCK_SIZE), 1, 1};
 
-  static void run(T *out, T const *in) {
+  static void run(T *out, T const *in, float scalar = 0.0f) {
     element_unary_kernel_fwd<ElementUnaryKernel<T, OP, SrcLayout, DstLayout>>
-        <<<grid_shape, block_shape>>>(out, in);
+        <<<grid_shape, block_shape>>>(out, in, scalar);
   }
 };
 
