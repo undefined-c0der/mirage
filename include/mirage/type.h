@@ -201,6 +201,8 @@ enum TBOperatorType {
   TB_SPLIT_1_OP = 2421,
   TB_SPLIT_2_OP = 2422,
   TB_SPLIT_LAST_OP_ID = 2429,
+  // Forloop Delta
+  TB_FORLOOP_DELTA_OP = 2450,
   // Forloop Accum
   // LD indicates last dimension
   TB_FORLOOP_ACCUM_FIRST_OP = 2500,
@@ -260,6 +262,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {TB_SPLIT_1_OP, "tb_split_1_op"},
         {TB_SPLIT_2_OP, "tb_split_2_op"},
         {TB_SPLIT_LAST_OP_ID, "tb_split_last_op_id"},
+        {TB_FORLOOP_DELTA_OP, "tb_forloop_delta_op"},
         {TB_FORLOOP_ACCUM_NO_RED_OP, "tb_forloop_accum_nored_op"},
         {TB_FORLOOP_ACCUM_RED_LD_SUM_OP, "tb_forloop_accum_red_ld_sum_op"},
         {TB_FORLOOP_ACCUM_RED_LD_MEAN_OP, "tb_forloop_accum_red_ld_mean_op"},

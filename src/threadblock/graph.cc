@@ -121,7 +121,9 @@ size_t Graph::calculate_shared_memory_usage(TBOperator *new_op) {
       // Concat
       case mirage::type::TB_CONCAT_0_OP:
       case mirage::type::TB_CONCAT_1_OP:
-      case mirage::type::TB_CONCAT_2_OP: {
+      case mirage::type::TB_CONCAT_2_OP:
+      // Forloop delta
+      case mirage::type::TB_FORLOOP_DELTA_OP: {
         for (size_t i = 0; i < op->output_tensors.size(); i++) {
           usage += op->output_tensors[i].size();
         }
@@ -664,7 +666,7 @@ NewKernelParams Graph::get_new_kernel_params(bool fingerprint) const {
         assert(false && "Unsupported TB operator");
       }
     } // switch
-  }   // for-loop
+  } // for-loop
   // Our serializer assumes that input loaders are the first operators
   // and that output savers are the last operators
   for (int i = 0; i < params.num_dmem_inputs; i++) {
@@ -871,6 +873,17 @@ void from_json(json const &j, Graph &graph) {
                          dim);
         guid_mapping[output.guid] =
             op.at("output_tensors")[0].at("guid").get<int>();
+        break;
+      }
+      case type::TBOperatorType::TB_FORLOOP_DELTA_OP: {
+        std::vector<STensor> const &output =
+            graph.forloop_delta(get_tensor_from_guid(
+                op.at("input_tensors")[0].at("guid").get<int>()));
+        assert(output.size() == 2);
+        guid_mapping[output[0].guid] =
+            op.at("output_tensors")[0].at("guid").get<int>();
+        guid_mapping[output[1].guid] =
+            op.at("output_tensors")[1].at("guid").get<int>();
         break;
       }
       case type::TBOperatorType::TB_FORLOOP_ACCUM_NO_RED_OP:

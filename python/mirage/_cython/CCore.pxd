@@ -138,6 +138,8 @@ cdef extern from "mirage/type.h" namespace "mirage::type":
         TB_SPLIT_1_OP = 2421,
         TB_SPLIT_2_OP = 2422,
         TB_SPLIT_LAST_OP_ID = 2429,
+        # Forloop Delta
+        TB_FORLOOP_DELTA_OP = 2450,
         # Forloop Accum
         # LD indicates last dimension
         TB_FORLOOP_ACCUM_FIRST_OP = 2500,
@@ -287,6 +289,7 @@ cdef extern from "mirage/threadblock/graph.h" namespace "mirage::threadblock":
         CppSTensor* concat(const CppSTensor *A,
                         const CppSTensor *B,
                         int dim)
+        vector[CppSTensor*] forloop_delta(const CppSTensor *A)
         CppSTensor* forloop_accum(const CppSTensor *A,
                                TBOperatorType optype)
         CppSTensor* forloop_accum_rescale(const CppSTensor *A,

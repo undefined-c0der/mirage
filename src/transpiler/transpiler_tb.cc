@@ -15,6 +15,7 @@
 
 #include "mirage/threadblock/element_unary.h"
 #include "mirage/threadblock/forloop_accum.h"
+#include "mirage/threadblock/forloop_delta.h"
 #include "mirage/threadblock/operator.h"
 #include "mirage/threadblock/reduction.h"
 #include "mirage/threadblock/smem_tensor.h"
@@ -580,6 +581,32 @@ CustomOPTranspileResult
   }
   code.e("");
 
+  // Clear all forloop delta records
+  int num_clear_deltas = 0;
+  for (TBSchedNode const &node : sched.loop_nodes) {
+    if (node.type != tb_sched_node_t::OPERATOR) {
+      continue;
+    }
+    auto [last_op, last_op_meta] = node.ops.back();
+    if (last_op->op_type == type::TB_FORLOOP_DELTA_OP) {
+      tb::TBForloopDeltaOp const *delta_op =
+          dynamic_cast<tb::TBForloopDeltaOp const *>(last_op);
+      tb::STensor const &record = delta_op->output_tensors.at(1);
+      STensorMeta const &record_meta = stensor_metas.at(record.guid);
+      size_t num_elems = 0;
+      for (int i = 0; i < record.num_dims; ++i) {
+        num_elems = std::max(num_elems, record.dim[i] * record_meta.strides[i]);
+      }
+      code.e("tb::ClearDeltaRecordKernel<$, $, "
+             "NUM_THREADS>::run(stensor$_ptr, thread_idx);",
+             get_datatype_str(record.data_type),
+             num_elems,
+             record.guid);
+      num_clear_deltas += 1;
+    }
+  }
+  code.e("");
+
   // Initialize all reduction max
   int num_init_reductions = 0;
   for (TBSchedNode const &node : sched.loop_nodes) {
@@ -793,7 +820,7 @@ CustomOPTranspileResult
     }
   }
 
-  if (num_pre_loop_copies > 0 || num_clear_accums > 0 ||
+  if (num_pre_loop_copies > 0 || num_clear_accums > 0 || num_clear_deltas > 0 ||
       num_init_reductions > 0) {
     code.e("__syncthreads();");
     code.e("");
@@ -1233,6 +1260,57 @@ CustomOPTranspileResult
                  "thread_idx);",
                  updated_max.guid,
                  diff.guid,
+                 input.guid);
+          break;
+        }
+        case type::TB_FORLOOP_DELTA_OP: {
+          assert(sched_node.ops.size() == 1); // Should not be fused
+          assert(is_in_loop);
+          tb::STensor const &input = op->input_tensors.at(0);
+          tb::STensor const &delta = output_op->output_tensors.at(0);
+          tb::STensor const &record = output_op->output_tensors.at(1);
+          STensorMeta input_meta = stensor_metas.at(input.guid);
+          STensorMeta delta_meta = stensor_metas.at(delta.guid);
+          STensorMeta record_meta = stensor_metas.at(record.guid);
+          assert(input.num_dims == delta.num_dims &&
+                 input.num_dims == record.num_dims);
+          int num_dims = input.num_dims;
+          // Find the iteration dim
+          int iter_dim = -1;
+          for (int i = 0; i < num_dims; ++i) {
+            bool failed = false;
+            for (tb::STensor const &stensor : {input, delta, record}) {
+              STensorMeta meta = stensor_metas.at(stensor.guid);
+              if (i != meta.innermost_dim && meta.swizzled_dim != i) {
+                failed = true;
+                break;
+              }
+            }
+            if (!failed) {
+              iter_dim = i;
+              break;
+            }
+          }
+          assert(iter_dim != -1);
+          // Define layouts
+          string in_layout =
+              mov_last_get_stensor_layout(input, input_meta, iter_dim);
+          string delta_layout =
+              mov_last_get_stensor_layout(delta, delta_meta, iter_dim);
+          string record_layout =
+              mov_last_get_stensor_layout(record, record_meta, iter_dim);
+          code.e("using InLayout = $;", in_layout);
+          code.e("using DeltaLayout = $;", delta_layout);
+          code.e("using RecordLayout = $;", record_layout);
+          // Should not have epilogue
+          // Define and run the kernel
+          code.e("using Kernel = tb::ForloopDeltaKernel<$, "
+                 "DeltaLayout, RecordLayout, InLayout, NUM_THREADS>;",
+                 get_datatype_str(input.data_type));
+          code.e("Kernel::run(stensor$_ptr, stensor$_ptr, stensor$_ptr, "
+                 "thread_idx);",
+                 delta.guid,
+                 record.guid,
                  input.guid);
           break;
         }

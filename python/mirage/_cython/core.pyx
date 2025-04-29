@@ -268,6 +268,8 @@ def get_tb_operator_type_string(int op_type):
         return "tb_split_2_op"
     elif op_type == TB_SPLIT_LAST_OP_ID:
         return "tb_split_last_op_id"
+    elif op_type == TB_FORLOOP_DELTA_OP:
+        return "tb_forloop_delta_op"
     elif op_type == TB_FORLOOP_ACCUM_NO_RED_OP:
         return "tb_forloop_accum_no_red_op"
     elif op_type == TB_FORLOOP_ACCUM_RED_LD_SUM_OP:
@@ -1018,6 +1020,12 @@ cdef class CyTBGraph:
         cdef CppSTensor* ptr = self.p_bgraph.concat(A.c_ptr, B.c_ptr, dim)
         t = ctypes.cast(<unsigned long long>ptr, ctypes.c_void_p)
         return STensor(t)
+
+    def forloop_delta(self, STensor A):
+        cdef vector[CppSTensor*] ptrs = self.p_bgraph.forloop_delta(A.c_ptr)
+        t0 = ctypes.cast(<unsigned long long>ptrs[0], ctypes.c_void_p)
+        t1 = ctypes.cast(<unsigned long long>ptrs[1], ctypes.c_void_p)
+        return STensor(t0), STensor(t1)
 
     def forloop_accum(self, STensor A, str acc):
         optype = string_to_accum_optype(acc)

@@ -674,6 +674,36 @@ void Transpiler::resolve_tensor_layout() {
             }
             break;
           }
+          case type::TB_FORLOOP_DELTA_OP: {
+            assert(tb_op == output_op);
+            tb::STensor const &input = tb_op->input_tensors.at(0);
+            tb::STensor const &delta = tb_op->output_tensors.at(0);
+            tb::STensor const &record = tb_op->output_tensors.at(1);
+            int num_dims = input.num_dims;
+            assert(input.num_dims == delta.num_dims);
+            assert(input.num_dims == record.num_dims);
+            // Enumerate the iteration dim
+            z3::expr_vector is_op_iter_dim(ctx);
+            for (int i = 0; i < num_dims; ++i) {
+              std::string var_name = fmt("op_iter_dim_$_$", delta.guid, i);
+              is_op_iter_dim.push_back(ctx.bool_const(var_name.c_str()));
+            }
+            opt.add(z3::atmost(is_op_iter_dim, 1));
+            opt.add(z3::atleast(is_op_iter_dim, 1));
+            // Need to swizzle one dimension if it is not the innermost dim
+            for (int i = 0; i < num_dims; ++i) {
+              opt.add(z3::implies(is_op_iter_dim[i] &&
+                                      !s_is_innermost[input.guid][i],
+                                  s_is_swizzled[input.guid][i]));
+              opt.add(z3::implies(is_op_iter_dim[i] &&
+                                      !s_is_innermost[delta.guid][i],
+                                  s_is_swizzled[delta.guid][i]));
+              opt.add(z3::implies(is_op_iter_dim[i] &&
+                                      !s_is_innermost[record.guid][i],
+                                  s_is_swizzled[record.guid][i]));
+            }
+            break;
+          }
           case type::TB_CONCAT_0_OP:
           case type::TB_CONCAT_1_OP:
           case type::TB_CONCAT_2_OP: {

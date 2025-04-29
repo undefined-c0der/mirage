@@ -151,6 +151,11 @@ public:
   STensor *concat(STensor const *A, STensor const *B, int dim);
   TBOperator *create_concat_op(STensor const &A, STensor const &B, int dim);
 
+  // forloop delta operator
+  std::vector<STensor> forloop_delta(STensor const &input);
+  std::vector<STensor *> forloop_delta(STensor const *input);
+  TBOperator *create_forloop_delta_op(STensor const &input);
+
   // forloop accum operator
   STensor forloop_accum(STensor const &input,
                         mirage::type::TBOperatorType type);

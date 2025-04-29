@@ -364,6 +364,16 @@ kernel::Graph const *rewrite_graph_for_online_softmax(kernel::Graph const *g) {
                 }
                 break;
               }
+              case TB_FORLOOP_DELTA_OP: {
+                assert(stensor_inputs.size() == 1);
+                std::vector<threadblock::STensor> stensors =
+                    tbg->forloop_delta(stensor_inputs[0]);
+                assert(bop->output_tensors.size() == 2);
+                assert(stensors.size() == 2);
+                for (size_t i = 0; i < stensors.size(); i++) {
+                  stensor_mapping[bop->output_tensors[i].guid] = stensors[i];
+                }
+              }
               case TB_FORLOOP_ACCUM_NO_RED_OP: {
                 if (std::find(tensors_replace.begin(),
                               tensors_replace.end(),
@@ -666,6 +676,17 @@ Transpiler::Transpiler(kernel::Graph const *_graph,
               std::vector<threadblock::STensor> stensors = tbg->reduction_max(
                   stensor_inputs[0], bop->op_type - TB_REDUCTION_0_MAX_OP);
               assert(bop->output_tensors.size() == 2);
+              for (size_t i = 0; i < stensors.size(); i++) {
+                stensor_mapping[bop->output_tensors[i].guid] = stensors[i];
+              }
+              break;
+            }
+            case TB_FORLOOP_DELTA_OP: {
+              assert(stensor_inputs.size() == 1);
+              std::vector<threadblock::STensor> stensors =
+                  tbg->forloop_delta(stensor_inputs[0]);
+              assert(bop->output_tensors.size() == 2);
+              assert(stensors.size() == 2);
               for (size_t i = 0; i < stensors.size(); i++) {
                 stensor_mapping[bop->output_tensors[i].guid] = stensors[i];
               }

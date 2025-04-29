@@ -62,6 +62,9 @@ class TBGraph:
     def concat(self, A: STensor, B: STensor, dim: int):
         return self.cygraph.concat(A, B, dim)
 
+    def forloop_delta(self, A: STensor):
+        return self.cygraph.forloop_delta(A)
+
     def forloop_accum(self, A: STensor, acc: str = None):
         return self.cygraph.forloop_accum(A, acc)
 
