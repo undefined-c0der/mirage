@@ -5,7 +5,7 @@ import runtime_kernel
 torch.set_printoptions(sci_mode=False)
 
 reduction_size = 4096
-output_sizes = [16, 32, 64]
+output_sizes = [16, 32, 64, 128, 256, 1600]
 
 rms_norm = torch.nn.RMSNorm(reduction_size, device="cuda:0", dtype=torch.bfloat16)
 
@@ -81,8 +81,9 @@ for output_size in output_sizes:
         outputs = graph(inputs=input_tensors)
 
     torch.cuda.synchronize()
-    starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
-        enable_timing=True
+    starter, ender = (
+        torch.cuda.Event(enable_timing=True),
+        torch.cuda.Event(enable_timing=True),
     )
     starter.record()
     for rep in range(repetitions):

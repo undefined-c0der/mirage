@@ -25,6 +25,8 @@ namespace kernel {
     FUNC<T, 1, 32, 4096>(__VA_ARGS__);                                         \
   } else if ((OUTPUT_SIZE) == 64) {                                            \
     FUNC<T, 1, 64, 4096>(__VA_ARGS__);                                         \
+  } else if ((OUTPUT_SIZE) == 128) {                                           \
+    FUNC<T, 1, 128, 4096>(__VA_ARGS__);                                        \
   } else if ((OUTPUT_SIZE) == 256) {                                           \
     FUNC<T, 1, 256, 4096>(__VA_ARGS__);                                        \
   } else if ((OUTPUT_SIZE) == 1600) {                                          \

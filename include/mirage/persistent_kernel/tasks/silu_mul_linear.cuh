@@ -44,23 +44,20 @@ __device__ __forceinline__ void silu_mul_linear_kernel(void const *input_ptr,
   constexpr int CHUNKS_PER_ROW_A = TILE_SIZE / CHUNK_SIZE;
   constexpr int CHUNKS_PER_ROW_B = OUTPUT_SIZE / CHUNK_SIZE;
 
-  constexpr int log2_CHUNK_SIZE = 3;
-  constexpr int log2_CHUNKS_PER_ROW_A = 3;
-  constexpr int log2_CHUNKS_PER_ROW_B = CHUNKS_PER_ROW_B == 2   ? 1
-                                        : CHUNKS_PER_ROW_B == 4 ? 2
-                                                                : 3;
+  constexpr int log2_CHUNK_SIZE = log2_constexpr(CHUNK_SIZE);
+  constexpr int log2_CHUNKS_PER_ROW_A = log2_constexpr(CHUNKS_PER_ROW_A);
+  constexpr int log2_CHUNKS_PER_ROW_B = log2_constexpr(CHUNKS_PER_ROW_B);
 
   // using SM80_16x8x16_F16F16F16F16_TNX2 = 16X16X16
-  constexpr int NUM_WARP_N = OUTPUT_SIZE / 16; // 1, 2, 4
-  constexpr int NUM_WARP_K = 4 / NUM_WARP_N;   // 4, 2, 1
+  constexpr int NUM_WARP_N =
+      OUTPUT_SIZE / 16 <= 4 ? OUTPUT_SIZE / 16 : 4; // 1, 2, 4
+  constexpr int NUM_WARP_K = 4 / NUM_WARP_N;        // 4, 2, 1
 
   constexpr int NUM_ITERS_M = 1;
-  constexpr int NUM_ITERS_N = 1;
-  constexpr int NUM_ITERS_K = 4 / NUM_WARP_K; // 1, 2, 4
+  constexpr int NUM_ITERS_N = OUTPUT_SIZE / (16 * NUM_WARP_N);
+  constexpr int NUM_ITERS_K = TILE_SIZE / (16 * NUM_WARP_K);
 
-  constexpr int log2_NUM_WARP_N = NUM_WARP_N == 1   ? 0
-                                  : NUM_WARP_N == 2 ? 1
-                                                    : 2; // 0, 1, 2
+  constexpr int log2_NUM_WARP_N = log2_constexpr(NUM_WARP_N);
 
   int warp_idx = warp_id();
   int warp_row = warp_idx >> log2_NUM_WARP_N;
@@ -195,9 +192,14 @@ __device__ __forceinline__ void silu_mul_linear_kernel(void const *input_ptr,
 
   //  accumulator
   float s_frag[NUM_ITERS_M][NUM_ITERS_N][8];
+  for (uint32_t m = 0; m < NUM_ITERS_M; m++) {
 #pragma unroll
-  for (int i = 0; i < 8; ++i) {
-    s_frag[0][0][i] = 0.0f;
+    for (uint32_t n = 0; n < NUM_ITERS_N; n++) {
+#pragma unroll
+      for (uint32_t i = 0; i < 8; i++) {
+        s_frag[m][n][i] = 0.0f;
+      }
+    }
   }
 
   for (int for_idx = 0; for_idx < FORLOOP_RANGE; for_idx++) {
@@ -271,7 +273,7 @@ __device__ __forceinline__ void silu_mul_linear_kernel(void const *input_ptr,
       int m_row = (idx_in_warp & 0xF);
       bool is_valid = (m_row < BATCH_SIZE);
       for (uint32_t n = 0; n < NUM_ITERS_N; n++) {
-        int n_col = (warp_col << 4) + ((idx_in_warp >> 4) << 3);
+        int n_col = (n << 6) + (warp_col << 4) + ((idx_in_warp >> 4) << 3);
 #pragma unroll
         for (uint32_t k = 0; k < NUM_ITERS_K; k++) {
           int n_row = (warp_row << (4 + log2_NUM_WARP_N)) + (k << 4) +
@@ -292,14 +294,15 @@ __device__ __forceinline__ void silu_mul_linear_kernel(void const *input_ptr,
 
   // reg write back to smem
   for (uint32_t m = 0; m < NUM_ITERS_M; m++) {
+#pragma unroll
     for (uint32_t n = 0; n < NUM_ITERS_N; n++) {
 #pragma unroll
       for (uint32_t i = 0; i < 4; i++) {
         int row_in_warp = (idx_in_warp >> 2) + ((i & 0x1) << 3);
         if (row_in_warp < BATCH_SIZE) {
           // continue;
-          int col =
-              (warp_col << 4) + ((idx_in_warp & 0x3) << 1) + ((i >> 1) << 3);
+          int col = (n << 6) + (warp_col << 4) + ((idx_in_warp & 0x3) << 1) +
+                    ((i >> 1) << 3);
           mm_intermediate_smem.at(warp_row + row_in_warp, col) =
               bfloat16(s_frag[m][n][(i << 1)]);
           mm_intermediate_smem.at(warp_row + row_in_warp, col + 1) =
